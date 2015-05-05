@@ -1,0 +1,17 @@
+{
+  "name": "segments",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "bitcoin"
+  ],
+  "author": "maraoz",
+  "license": "MIT",
+  "dependencies": {
+    "bitcore": "^0.12.3"
+  }
+}
