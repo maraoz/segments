@@ -9,7 +9,7 @@ var pk = 'cQ8e5gjMf7dz7b87fo6UygDw2GztBHjn3qa8PBwjYY4ApMKwMM4P';
 var utxos = [{
   address: main,
   txid: '88f1d64701336bd5c71e8cf99b07c70075fded0be13e574fe2a0b068b4d24cc5',
-  outputIndex: 0,
+  outputIndex: 1,
   scriptPubKey: '76a9145ffd525ef01e229497e56b189fdd2a42bd36ba6688ac',
   amount: 1,
 }];
@@ -20,6 +20,7 @@ var bestHash = null;
 
 var desiredAmount = Unit.fromBTC(0.01).toSatoshis();
 var MAX_SPEND = Unit.fromBTC(0.001).toSatoshis();
+var fee = Unit.fromBTC(0.001).toSatoshis();
 
 while (true) {
 
@@ -29,6 +30,7 @@ while (true) {
     .change(main)
     .from(utxos)
     .to(main, satoshis)
+    .fee(fee)
     .sign(pk);
 
   var hashValue = parseInt(tx.hash, 16);

@@ -12,6 +12,7 @@
   "author": "maraoz",
   "license": "MIT",
   "dependencies": {
-    "bitcore": "^0.12.3"
+    "bitcore": "^0.12.3",
+    "bitcore-explorers": "^0.11.0"
   }
 }
