@@ -1,46 +1,66 @@
 'use strict';
 
 var bitcore = require('bitcore');
+var explorers = require('bitcore-explorers');
+
 var Transaction = bitcore.Transaction;
 var Unit = bitcore.Unit;
+var $ = bitcore.util.preconditions;
 
-var main = 'mpGVxP8nrX446XgRa7YhCFaLj3ShmkiMYn';
-var pk = 'cQ8e5gjMf7dz7b87fo6UygDw2GztBHjn3qa8PBwjYY4ApMKwMM4P';
-var utxos = [{
-  address: main,
-  txid: '88f1d64701336bd5c71e8cf99b07c70075fded0be13e574fe2a0b068b4d24cc5',
-  outputIndex: 1,
-  scriptPubKey: '76a9145ffd525ef01e229497e56b189fdd2a42bd36ba6688ac',
-  amount: 1,
-}];
-
-
-var best = null;
-var bestHash = null;
-
+var main = 'mzcc1oA5Aw4EfBvveKm8NEmZ93U9VFu3x3';
+var pk = 'cN76gKEk9w6rALN7gqEc9PNshgSQUXr4nTHybHZAibo1meewp2uE';
 var desiredAmount = Unit.fromBTC(0.01).toSatoshis();
 var MAX_SPEND = Unit.fromBTC(0.001).toSatoshis();
 var fee = Unit.fromBTC(0.001).toSatoshis();
 
-while (true) {
+var network = 'testnet';
+var insight = new explorers.Insight(network);
+var difficulty = Math.pow(2, 240);
 
-  var satoshis = desiredAmount + Math.floor(Math.random() * MAX_SPEND);
+console.log('difficulty', difficulty);
 
-  var tx = new Transaction()
-    .change(main)
-    .from(utxos)
-    .to(main, satoshis)
-    .fee(fee)
-    .sign(pk);
+var transact = function() {
 
-  var hashValue = parseInt(tx.hash, 16);
-  if (best === null || hashValue < bestHash) {
-    best = tx;
-    bestHash = hashValue;
-    console.log(tx.id, bestHash);
-    console.log(tx.toObject());
-    console.log(tx);
-    console.log('*************************************');
-  }
+  insight.getUnspentUtxos(main, function(err, utxos) {
+    if (err) {
+      throw err;
+    }
+    $.checkState(utxos.length > 0, main + ' should contain utxos');
 
-}
+    var bestHash = null;
+    var mining = true;
+    while (mining) {
+
+      var satoshis = desiredAmount + Math.floor(Math.random() * MAX_SPEND);
+
+      var tx = new Transaction()
+        .change(main)
+        .from(utxos)
+        .to(main, satoshis)
+        .fee(fee)
+        .sign(pk);
+
+      var hashValue = parseInt(tx.hash, 16);
+      if (bestHash === null || hashValue < bestHash) {
+        bestHash = hashValue;
+        console.log(tx.id, bestHash);
+        if (bestHash < difficulty) {
+          console.log('will broadcast', tx.id);
+          insight.broadcast(tx, function(err, txid) {
+            if (err) {
+              throw err;
+            }
+            console.log('broadcasted', txid);
+            console.log('*************************************');
+            setTimeout(transact, 1000);
+          });
+          mining = false;
+        }
+      }
+
+    }
+
+  });
+};
+
+transact();
